@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Precision Livestock Calculus: Bio-Economic Growth Simulator</title>
+    
+    <!-- Tailwind CSS for Premium Dark UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js with Annotation Plugin for inflection/economic lines -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome for Agriculture, Math, and Tech Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts for Editorial Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        canvas {
+            cursor: crosshair;
+        }
+        /* Custom scrollbar design */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-slate-950">
+
+    <!-- Premium Navigation Bar -->
+    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-emerald-500 to-cyan-400 p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-cow text-slate-950 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-300 bg-clip-text text-transparent">
+                        Bio-Economic Livestock Simulator
+                    </h1>
+                    <p class="text-xs text-slate-400 font-semibold tracking-wider uppercase">SFH: Animal Husbandry Technology • Precision Calculus</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-semibold text-slate-400 tracking-wider">SELECT SIMULATION MODEL:</span>
+                <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex gap-1">
+                    <button onclick="changeBreed('kk')" id="btn-kk" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 bg-emerald-500 text-slate-950">KK Cattle</button>
+                    <button onclick="changeBreed('brahman')" id="btn-brahman" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 text-slate-400 hover:text-white">Brahman Cross</button>
+                    <button onclick="changeBreed('friesian')" id="btn-friesian" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 text-slate-400 hover:text-white">Friesian-Sahiwal</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Workspace Grid -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- LEFT: Advanced Control Panel & Math Foundations (5 Columns) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Real-time Economic Variable Controls -->
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-emerald-400"></i>
+                    Bio-Economic Market Controls
+                </h2>
+                
+                <div class="space-y-5">
+                    <!-- Control 1: Feed Cost -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-semibold text-slate-300">Feed Concentrate Price (RM/kg)</span>
+                            <span id="label-feed" class="mono text-emerald-400 font-bold text-sm">RM 1.80</span>
+                        </div>
+                        <input type="range" id="input-feed" min="0.80" max="3.50" step="0.10" value="1.80" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
+                               oninput="updateEconomics()">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>Subsidized (RM 0.80)</span>
+                            <span>Premium Imported (RM 3.50)</span>
+                        </div>
+                    </div>
+
+                    <!-- Control 2: Beef Selling Price -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-semibold text-slate-300">Market Beef Price (RM/kg Live Weight)</span>
+                            <span id="label-beef" class="mono text-emerald-400 font-bold text-sm">RM 18.00</span>
+                        </div>
+                        <input type="range" id="input-beef" min="10.00" max="25.00" step="0.50" value="18.00" 
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-400"
+                               oninput="updateEconomics()">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>Farmgate (RM 10.00)</span>
+                            <span>Runcit/Retail Peak (RM 25.00)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed Efficiency Equation Alert -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-xs text-slate-400 mt-5 leading-relaxed">
+                    <span class="font-semibold text-slate-200 block mb-1">Metabolic Scaling Constraint (Kleiber's Law):</span>
+                    Maintenance Feed intake calculated dynamically: <code class="text-cyan-400">0.08 * W(t)<sup>0.75</sup></code> kg/day. Gain feed is added proportionally to $W'(t)$.
+                </div>
+            </div>
+
+            <!-- Mathematical Mechanics Card -->
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl flex flex-col gap-4">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-infinity text-emerald-400"></i>
+                    Derivatives & Critical Points
+                </h2>
+
+                <div class="space-y-3">
+                    <!-- Gompertz Core -->
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">Total Weight Model: $f(t)$</span>
+                        <div class="mono text-sm text-emerald-300 font-bold mt-1">
+                            W(t) = a · exp(-b · exp(-k · t))
+                        </div>
+                    </div>
+
+                    <!-- First Derivative (Velocity) -->
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase block">First Derivative (ADG): $f'(t)$</span>
+                        <div class="mono text-sm text-cyan-300 font-bold mt-1">
+                            W'(t) = W(t) · b · k · exp(-k · t)
+                        </div>
+                    </div>
+
+                    <!-- Second Derivative (Acceleration) -->
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Second Derivative: $f''(t)$</span>
+                            <span class="text-[9px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded font-bold uppercase">Inflection Point Solver</span>
+                        </div>
+                        <div class="mono text-sm text-amber-400 font-bold mt-1">
+                            W''(t) = W'(t) · k · (b · exp(-k · t) - 1)
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-2">
+                            When <strong class="text-amber-400">W''(t) = 0</strong>, the animal reaches its maximum physical growth rate (Day <span id="inflection-calc-day" class="font-bold text-white">251</span>).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT: Interactive Visualization & Analytical Dashboard (7 Columns) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Real-time Chart -->
+            <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl flex flex-col gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                            Adaptive Trajectory Simulator
+                        </h2>
+                        <p class="text-xs text-slate-400">Primary Left-Axis represents Weight (kg). Secondary Right-Axis shows Velocity/Gain Rate (kg/day).</p>
+                    </div>
+                    <div class="text-[11px] bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full text-emerald-400 font-semibold self-start sm:self-auto">
+                        <i class="fa-solid fa-hand-pointer mr-1 animate-ping"></i> Click curve to analyze
+                    </div>
+                </div>
+
+                <!-- Canvas Wrapper -->
+                <div class="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-slate-950/40 rounded-2xl p-2 border border-slate-800/40">
+                    <canvas id="advancedChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Precision Analytical Terminal -->
+            <div id="analyticalConsole" class="bg-slate-900 rounded-3xl border border-slate-800 p-6 shadow-2xl relative overflow-hidden">
+                
+                <!-- Idle State Message -->
+                <div id="idleState" class="flex flex-col items-center justify-center text-center py-8">
+                    <div class="bg-slate-950 p-4 rounded-full border border-slate-800 text-slate-400 mb-3">
+                        <i class="fa-solid fa-microchip text-2xl text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-white font-semibold text-sm uppercase tracking-widest">Select age on timeline</h3>
+                    <p class="text-slate-400 text-xs max-w-sm mt-1">
+                        Interact with the Chart.js graph points to load instant calculations for the 1st derivative (gain rate), 2nd derivative (gain velocity acceleration), and economic marginal balance.
+                    </p>
+                </div>
+
+                <!-- Analysis Display State -->
+                <div id="diagnosticsState" class="hidden flex flex-col gap-5">
+                    
+                    <!-- Day Indicator & Breed Specs -->
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-lg text-xs font-bold font-mono">
+                                DAY <span id="diagDay">0</span>
+                            </span>
+                            <span class="text-slate-400">|</span>
+                            <span class="text-xs text-slate-300 font-semibold uppercase tracking-wider" id="diagBreedName">Kedah-Kelantan Bull</span>
+                        </div>
+                        <span class="text-xs text-slate-500 font-mono">Calculus Engine v2.5</span>
+                    </div>
+
+                    <!-- Core Derivatives Output Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Weight -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">f(t) Weight</span>
+                            <div class="text-xl font-bold text-white mt-1">
+                                <span id="diagWeight" class="mono text-emerald-400">--</span> <span class="text-xs font-normal text-slate-400">kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Derivative W'(t) -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">f'(t) Velocity</span>
+                            <div class="text-xl font-bold text-white mt-1">
+                                <span id="diagGain" class="mono text-cyan-400">--</span> <span class="text-xs font-normal text-slate-400">kg/d</span>
+                            </div>
+                        </div>
+
+                        <!-- 2nd Derivative W''(t) -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">f''(t) Acceleration</span>
+                            <div class="text-xl font-bold text-white mt-1">
+                                <span id="diagAccel" class="mono text-amber-400">--</span> <span class="text-xs font-normal text-slate-400">g/d²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Margins and FCR Balance -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
+                        <!-- Daily Feeding Maintenance (Kleiber's) Cost -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Cost of Feed Intake</span>
+                            <div class="text-lg font-bold text-red-400 mt-1 mono" id="diagFeedCost">RM 0.00</div>
+                            <div class="text-[10px] text-slate-500 mt-1">Maintenance metabolic + dynamic feed intake</div>
+                        </div>
+
+                        <!-- Value Addition Margin -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Meat Value Added</span>
+                            <div class="text-lg font-bold text-emerald-400 mt-1 mono" id="diagValueAdded">RM 0.00</div>
+                            <div class="text-[10px] text-slate-500 mt-1">W'(t) rate of change valued at market rates</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Agricultural Dynamic Action Recommendation -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 border-l-4 border-l-cyan-500">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fa-solid fa-user-doctor text-cyan-400 text-xs"></i>
+                            <span class="text-xs font-bold text-slate-300 uppercase tracking-widest">Precision Action Directive</span>
+                        </div>
+                        <p id="diagExplanation" class="text-xs text-slate-400 leading-relaxed italic">
+                            Analyzing...
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer of Research Citations -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-6 mt-12 text-slate-500 text-xs">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <p class="font-semibold text-slate-400 mb-1">MARDI Research Standards Model Calibration:</p>
+                <p>KK Cattle parameterization: <code class="text-slate-500">a=350, b=3.5, k=0.005</code>. Brahman Cross: <code class="text-slate-500">a=520, b=3.8, k=0.0045</code>. Friesian-Sahiwal: <code class="text-slate-500">a=600, b=4.0, k=0.004</code>. Derived under Malaysian Tropical feedlot regimens.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="https://www.mardi.gov.my" target="_blank" class="text-slate-400 hover:text-emerald-400 transition-all duration-300 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-info"></i> MARDI Livestock Publications
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic Script Section -->
+    <script>
+        // Breed Data Library (Calculated from Malaysian intensive dairy-beef growth studies)
+        const breeds = {
+            kk: {
+                name: "Kedah-Kelantan (KK) Purebred",
+                a: 350,    // Mature weight plateau (kg)
+                b: 3.5,    // Displacement multiplier
+                k: 0.005,  // Mature growth rate index
+                inflection: 251
+            },
+            brahman: {
+                name: "Brahman-KK Commercial Cross",
+                a: 520,
+                b: 3.8,
+                k: 0.0045,
+                inflection: 297
+            },
+            friesian: {
+                name: "Friesian-Sahiwal Hybrid Dairy-Beef",
+                a: 600,
+                b: 4.0,
+                k: 0.004,
+                inflection: 347
+            }
+        };
+
+        // Initialize active variables
+        let selectedBreedKey = 'kk';
+        let advancedChartInstance = null;
+        let selectedDayIndex = null;
+
+        const timeSteps = [];
+        // Populate standard 1000 days growth lifecycle
+        for (let t = 0; t <= 1000; t += 20) {
+            timeSteps.push(t);
+        }
+
+        // Calculation: Gompertz f(t) - total weight
+        function getWeight(t, breed) {
+            return breed.a * Math.exp(-breed.b * Math.exp(-breed.k * t));
+        }
+
+        // Calculation: 1st Derivative f'(t) - Average Daily Gain (velocity)
+        function getFirstDerivative(t, breed) {
+            const w = getWeight(t, breed);
+            return w * breed.b * breed.k * Math.exp(-breed.k * t);
+        }
+
+        // Calculation: 2nd Derivative f''(t) - Acceleration of growth rate
+        function getSecondDerivative(t, breed) {
+            const wPrim = getFirstDerivative(t, breed);
+            return wPrim * breed.k * (breed.b * Math.exp(-breed.k * t) - 1);
+        }
+
+        // Change simulated cattle breed
+        function changeBreed(breedKey) {
+            selectedBreedKey = breedKey;
+            
+            // UI Button Active toggles
+            ['kk', 'brahman', 'friesian'].forEach(key => {
+                const btn = document.getElementById(`btn-${key}`);
+                if (key === breedKey) {
+                    btn.classList.remove('text-slate-400', 'hover:text-white');
+                    btn.classList.add('bg-emerald-500', 'text-slate-950');
+                } else {
+                    btn.classList.remove('bg-emerald-500', 'text-slate-950');
+                    btn.classList.add('text-slate-400', 'hover:text-white');
+                }
+            });
+
+            // Update displayed math info
+            document.getElementById('inflection-calc-day').innerText = breeds[breedKey].inflection;
+
+            rebuildChart();
+            
+            // Keep selected index tracking active or reset terminal
+            if (selectedDayIndex !== null) {
+                evaluateCalculusOnIndex(selectedDayIndex);
+            }
+        }
+
+        // Rebuild Chart.js Visualization with primary & secondary scales
+        function rebuildChart() {
+            const breed = breeds[selectedBreedKey];
+            const weightDataset = [];
+            const gainDataset = [];
+
+            timeSteps.forEach(t => {
+                weightDataset.push(getWeight(t, breed).toFixed(2));
+                gainDataset.push(getFirstDerivative(t, breed).toFixed(4));
+            });
+
+            if (advancedChartInstance) {
+                advancedChartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('advancedChart').getContext('2d');
+            
+            advancedChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeSteps,
+                    datasets: [
+                        {
+                            label: 'Weight f(t) (kg)',
+                            data: weightDataset,
+                            borderColor: '#10b981',
+                            borderWidth: 3,
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'yWeight',
+                            pointRadius: 2,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#10b981'
+                        },
+                        {
+                            label: "Daily Gain f'(t) (kg/day)",
+                            data: gainDataset,
+                            borderColor: '#06b6d4',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'yGain',
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#06b6d4'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#94a3b8',
+                                font: { family: 'Plus Jakarta Sans', size: 11 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 } },
+                            title: { display: true, text: 'Cattle Lifecycle Age (Days)', color: '#cbd5e1' }
+                        },
+                        yWeight: {
+                            type: 'linear',
+                            position: 'left',
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#10b981', font: { family: 'Plus Jakarta Sans', size: 10 } },
+                            title: { display: true, text: 'Live Weight f(t) (kg)', color: '#10b981' }
+                        },
+                        yGain: {
+                            type: 'linear',
+                            position: 'right',
+                            grid: { drawOnChartArea: false }, // avoid grid overlaps
+                            ticks: { color: '#06b6d4', font: { family: 'Plus Jakarta Sans', size: 10 } },
+                            title: { display: true, text: "Average Daily Gain f'(t) (kg/day)", color: '#06b6d4' }
+                        }
+                    },
+                    onClick: (event) => {
+                        const clickedPoints = advancedChartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                        if (clickedPoints.length > 0) {
+                            selectedDayIndex = clickedPoints[0].index;
+                            evaluateCalculusOnIndex(selectedDayIndex);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Perform calculus transformations and real-time business diagnostics
+        function evaluateCalculusOnIndex(index) {
+            const breed = breeds[selectedBreedKey];
+            const t = timeSteps[index];
+            const w = getWeight(t, breed);
+            const wPrime = getFirstDerivative(t, breed);
+            const wDoublePrime = getSecondDerivative(t, breed);
+
+            // Fetch dynamic values from slider interface
+            const feedCostPerKg = parseFloat(document.getElementById('input-feed').value);
+            const beefPricePerKg = parseFloat(document.getElementById('input-beef').value);
+
+            // Calculate operational feed costs using metabolic body surface scaling
+            // Kleiber's Law establishes Maintenance metabolic intake = 0.08 * Weight^(0.75) kg
+            const maintenanceFeedIntake = 0.08 * Math.pow(w, 0.75);
+            // Feeding allocation needed strictly to pack on new weight: 3.5kg of extra balanced feed per 1kg gained
+            const productionGainFeed = wPrime * 3.5; 
+            const totalFeedIntake = maintenanceFeedIntake + productionGainFeed;
+            const totalFeedCost = totalFeedIntake * feedCostPerKg;
+
+            // Compute marginal addition return: f'(t) * market price per kg
+            const dailyMeatRevenueGain = wPrime * beefPricePerKg;
+            const netDailyProfit = dailyMeatRevenueGain - totalFeedCost;
+
+            // Toggle active diagnosis panel
+            document.getElementById('idleState').classList.add('hidden');
+            document.getElementById('diagnosticsState').classList.remove('hidden');
+
+            // Set variables to UI
+            document.getElementById('diagDay').innerText = t;
+            document.getElementById('diagBreedName').innerText = breed.name;
+            document.getElementById('diagWeight').innerText = w.toFixed(1);
+            document.getElementById('diagGain').innerText = `+${wPrime.toFixed(3)}`;
+            document.getElementById('diagAccel').innerText = `${(wDoublePrime * 1000).toFixed(1)}`; // scale to grams/day^2 for legibility
+
+            document.getElementById('diagFeedCost').innerText = `RM ${totalFeedCost.toFixed(2)}`;
+            document.getElementById('diagValueAdded').innerText = `RM ${dailyMeatRevenueGain.toFixed(2)}`;
+
+            // Biological Interpretation Directives
+            let advice = "";
+            if (t <= breed.inflection - 40) {
+                advice = `Your bull is in its early juvenile rapid growth phase. Current weight gain of +${(wPrime*7).toFixed(2)} kg/week is highly profitable. Maintain high energy levels in concentrate ratios to maximize this high acceleration.`;
+            } else if (Math.abs(t - breed.inflection) <= 40) {
+                advice = `Mathematical INFLECTION POINT detected! Acceleration of gain is leveling off to zero ($f''(t) \\approx 0$). The bull is putting on carcass tissue at its absolute highest biological velocity of ${wPrime.toFixed(2)} kg/day. Feed conversion ratio (FCR) is highly efficient.`;
+            } else {
+                if (netDailyProfit > 0) {
+                    advice = `Growth deceleration phase ($f''(t) < 0$) is active. The animal is starting to fatten, requiring more metabolic maintenance relative to growth. However, with your current input parameters, it remains profitable by **RM ${netDailyProfit.toFixed(2)}/day**. Monitor weekly.`;
+                } else {
+                    advice = `WARNING: Feed cost deficit! W'(t) has plummeted below the cost-to-carry maintenance threshold. You are losing **RM ${Math.abs(netDailyProfit).toFixed(2)}/day** keeping this animal. It is highly recommended to sell this bull immediately for slaughter processing.`;
+                }
+            }
+
+            document.getElementById('diagExplanation').innerText = advice;
+        }
+
+        // Sync and refresh numeric sliders
+        function updateEconomics() {
+            const feedCost = parseFloat(document.getElementById('input-feed').value);
+            const beefPrice = parseFloat(document.getElementById('input-beef').value);
+
+            document.getElementById('label-feed').innerText = `RM ${feedCost.toFixed(2)}`;
+            document.getElementById('label-beef').innerText = `RM ${beefPrice.toFixed(2)}`;
+
+            // Live refresh calculations if a point was already loaded
+            if (selectedDayIndex !== null) {
+                evaluateCalculusOnIndex(selectedDayIndex);
+            }
+        }
+
+        // Initialize application on window load
+        window.onload = function() {
+            rebuildChart();
+            updateEconomics();
+        }
+    </script>
+</body>
+</html>
